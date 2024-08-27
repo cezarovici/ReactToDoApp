@@ -8,7 +8,9 @@ interface TodoElementProps {
 }
 
 export default function TodoList() {
-  const [todos, setTodos] = useState<TodoElementProps[]>([]);  
+  const [todos, setTodos] = useState<TodoElementProps[]>([]);
+  const [dones, setDones] = useState<TodoElementProps[]>([]);
+
   const [newTask, setNewTask] = useState("");
   const [newPriority, setNewPriority] = useState<Priority>("Low");
 
@@ -24,16 +26,18 @@ export default function TodoList() {
     }
   };
 
-  const toggleTaskDone = (index: number , done : boolean) => {
-    console.log(index, done)
-    
-    const updatedTodos = todos.map((todo, i) =>
-      (i === index && todo.done === done)? { ...todo, done: !todo.done } : todo
-    );
-    
-    setTodos(updatedTodos);
-    console.log(todos, updatedTodos)
-
+  const toggleTaskDone = (index: number, inTodoList: boolean) => {
+    if (inTodoList) {
+      // Move task from "todos" to "dones"
+      const taskToMove = todos[index];
+      setTodos(todos.filter((_, i) => i !== index));
+      setDones([...dones, { ...taskToMove, done: true }]);
+    } else {
+      // Move task from "dones" to "todos"
+      const taskToMove = dones[index];
+      setDones(dones.filter((_, i) => i !== index));
+      setTodos([...todos, { ...taskToMove, done: false }]);
+    }
   };
 
   return (
@@ -71,34 +75,29 @@ export default function TodoList() {
         {/* TO DO */}
         <ul className="w-1/2">
           <h2 className="font-bold text-lg mb-2">Tasks To Do</h2>
-          {todos
-            .filter((todo) => !todo.done)
-            .map((todo, index) => (
-              <TodoElement
-                key={index}
-                task={todo.task + " " + index}
-                priority={todo.priority}
-                done={todo.done}
-                onToggle={() => toggleTaskDone(index , todo.done)}
-              />              
-            ))}
-            
+          {todos.map((todo, index) => (
+            <TodoElement
+              key={index}
+              task={todo.task}
+              priority={todo.priority}
+              done={todo.done}
+              onToggle={() => toggleTaskDone(index, true)}
+            />
+          ))}
         </ul>
 
         {/* DONE */}
         <ul className="w-1/2">
           <h2 className="font-bold text-lg mb-2">Tasks Done</h2>
-          {todos
-            .filter((todo) => todo.done)
-            .map((todo, index) => (
-              <TodoElement
-                key={index}
-                task={todo.task}
-                priority={todo.priority}
-                done={todo.done}
-                onToggle={() => toggleTaskDone(index , todo.done)}
-              />
-            ))}
+          {dones.map((todo, index) => (
+            <TodoElement
+              key={index}
+              task={todo.task}
+              priority={todo.priority}
+              done={todo.done}
+              onToggle={() => toggleTaskDone(index, false)}
+            />
+          ))}
         </ul>
       </div>
     </div>
